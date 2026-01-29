@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clintzy - Premium Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black">
+    <div id="root"></div>
+    <script type="module">
+        import HomeScreen from './src/screens/HomeScreen.js';
+        // For a quick mobile preview without a complex bundler:
+        document.getElementById('root').innerHTML = `
+            <div class="text-orange-500 p-10 text-center font-bold">
+                Clintzy is Loading...
+            </div>
+        `;
+    </script>
+</body>
+</html>
