@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ClintzyApp | Pulse Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { 
+            --brand: #F57C00; 
+            --bg-primary: #000000;
+            --bg-secondary: #121212;
+            --text-main: #ffffff;
+            --text-dim: #71717a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border-glass: rgba(255, 255, 255, 0.05);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        }
+
+        .hidden { display: none; }
+        * { -webkit-tap-highlight-color: transparent; scrollbar-width: none; transition: background-color 0.3s ease, color 0.3s ease; }
+        ::-webkit-scrollbar { display: none; }
+
+        body { background-color: var(--bg-primary); color: var(--text-main); font-family: 'Inter', sans-serif; }
+
+        /* Splash & Animations */
+        #splash-screen {
+            position: fixed; inset: 0; background: black; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+
+        .pulse-aura { position: relative; }
+        .pulse-aura::after {
+            content: ''; position: absolute; inset: -3px;
+            border-radius: 22px; padding: 2px;
+            background: linear-gradient(45deg, var(--brand), #ffcc00);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate { 100% { filter: hue-rotate(360deg); } }
+
+        .nav-active { color: var(--brand) !important; position: relative; }
+        .nav-active::after {
+            content: ''; position: absolute; bottom: -8px; width: 4px; height: 4px;
+            background: var(--brand); border-radius: 50%;
+        }
+
+        .fade-in-section { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .verification-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+
+        #more-menu { transform-origin: top right; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .music-card { background: linear-gradient(145deg, #1a1a1a, #0a0a0a); border: 1px solid var(--border-glass); }
+        
+        /* Comment & Emoji Styling */
+        .comment-thread { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 15px; padding-top: 15px; }
+        .comment-bubble { background: rgba(255,255,255,0.03); border-radius: 18px; padding: 8px 12px; font-size: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.02); }
+        .emoji-pill { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .emoji-pill:hover { background: var(--brand); transform: translateY(-2px); }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <div id="splash-screen">
+        <h1 class="text-5xl font-black italic tracking-tighter text-[#F57C00] animate-pulse">Clintzy</h1>
+        <div class="absolute bottom-12 flex flex-col items-center">
+            <div class="flex gap-1 mb-4">
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.4em]">Pulse Pro Engine</p>
+        </div>
+    </div>
+
+    <div id="auth-screen" class="fixed inset-0 z-[500] bg-black flex flex-col px-8 justify-center transition-all duration-700">
+        <div id="auth-form-container">
+            <div class="mb-12">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-green-500"></i>
+                    <span class="text-[10px] font-bold text-green-500 uppercase tracking-widest">End-to-End Encrypted</span>
+                </div>
+                <h2 id="auth-title" class="text-5xl font-black italic tracking-tighter text-white">JOIN THE<br><span class="text-[#F57C00]">PULSE.</span></h2>
+            </div>
+            <div class="space-y-4">
+                <input type="email" id="auth-email" placeholder="EMAIL ADDRESS" class="auth-input w-full p-5 rounded-3xl text-sm font-bold tracking-widest outline-none border-white/5 bg-white/5 focus:border-[#F57C00]/50">
+                <input type="password" id="auth-pass" placeholder="PASSWORD" class="auth-input w-full p-5 rounded-3xl text-sm font-bold tracking-widest outline-none border-white/5 bg-white/5 focus:border-[#F57C00]/50">
+                <div id="security-verification" class="p-5 bg-white/5 rounded-3xl border border-white/5">
+                    <p class="text-[10px] font-black uppercase text-zinc-500 mb-3">Slide to verify identity</p>
+                    <input type="range" id="verify-slider" min="0" max="100" value="0" class="w-full accent-[#F57C00] h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+                <button onclick="finalizeAuth()" class="w-full bg-[#F57C00] text-black font-black p-5 rounded-3xl uppercase tracking-tighter text-lg active:scale-95 transition-transform">Authorize Device</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-content" class="h-screen flex flex-col opacity-0 transition-opacity duration-700">
+        <header class="px-6 py-5 flex justify-between items-center bg-transparent backdrop-blur-md sticky top-0 z-50">
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-2xl font-black italic tracking-tighter text-[#F57C00]">Clintzy</h1>
+                    <div class="verification-dot"></div>
+                </div>
+                <p class="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600 leading-none mt-1">from Clintzy Tech</p>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button onclick="switchTab('vault')" class="relative"><i data-lucide="bookmark" class="w-6 h-6 text-zinc-400 hover:text-[#F57C00]"></i></button>
+                <button onclick="toggleMenu()"><i data-lucide="menu" class="w-6 h-6 text-zinc-400"></i></button>
+            </div>
+
+            <div id="more-menu" class="hidden absolute top-16 right-6 w-56 bg-[#121212] border border-white/5 rounded-3xl shadow-2xl z-[100] overflow-hidden p-2">
+                <button class="w-full p-4 text-left text-sm font-bold hover:bg-white/5 rounded-2xl">Pulse Settings</button>
+                <div class="h-[1px] bg-white/5 my-2"></div>
+                <button class="w-full p-4 text-left text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-2xl">Sign Out</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto">
+            <div id="home-section" class="fade-in-section">
+                <div class="px-6 mb-8 mt-4">
+                    <div class="bg-zinc-900/50 border border-white/5 rounded-[2rem] px-5 py-4 flex items-center gap-4 group focus-within:border-[#F57C00]/50 transition-all">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-[#F57C00]"></i>
+                        <input type="text" placeholder="Ask Clintzy AI..." class="bg-transparent outline-none w-full text-sm font-medium placeholder-zinc-600">
+                    </div>
+                </div>
+
+                <div class="mb-10">
+                    <div class="px-6 flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500">Live Pulse</h3>
+                    </div>
+                    <div class="flex gap-5 overflow-x-auto px-6 pb-2">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-20 h-20 rounded-[2rem] bg-zinc-900 border-2 border-dashed border-zinc-700 flex items-center justify-center cursor-pointer" onclick="togglePulseCreator()">
+                                <i data-lucide="plus" class="w-6 h-6 text-zinc-500"></i>
+                            </div>
+                            <span class="text-[10px] font-bold opacity-40">YOU</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                            <div class="w-20 h-20 rounded-[2rem] overflow-hidden pulse-aura relative">
+                                <img src="https://i.pravatar.cc/150?u=jessica" class="w-full h-full object-cover">
+                                <div class="absolute bottom-1 right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-black"></div>
+                            </div>
+                            <span class="text-[10px] font-black group-hover:text-[#F57C00]">JESSICA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 pb-32" id="waves-feed">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500 mb-6">Recent Waves</h3>
+                    <div class="bg-zinc-900/40 p-6 rounded-[2.5rem] border border-white/5 mb-6 fade-in-section" id="post-demo-1">
+                        <div class="flex items-center gap-4 mb-4">
+                            <img src="https://i.pravatar.cc/150?u=marcus" class="w-10 h-10 rounded-xl object-cover">
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm">Marcus V.</h4>
+                                <p class="text-[10px] opacity-40 font-black uppercase">2m ago</p>
+                            </div>
+                            <button class="text-zinc-500"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+                        </div>
+                        <p class="text-sm font-medium mb-4">Midnight studio sessions hitting different. New album coming soon! 🎹</p>
+                        
+                        <div class="flex items-center gap-6 py-2">
+                            <button class="flex items-center gap-2 text-zinc-400 active:text-[#F57C00] transition-colors"><i data-lucide="heart" class="w-5 h-5"></i><span class="text-xs font-black">24</span></button>
+                            <button onclick="toggleComments('demo-1')" class="flex items-center gap-2 text-zinc-400"><i data-lucide="message-square" class="w-5 h-5"></i><span class="text-xs font-black" id="count-demo-1">1</span></button>
+                            <button class="flex items-center gap-2 text-zinc-400"><i data-lucide="share" class="w-5 h-5"></i></button>
+                        </div>
+
+                        <div id="comments-demo-1" class="hidden comment-thread">
+                            <div class="flex gap-2 mb-4 overflow-x-auto py-1">
+                                <button onclick="quickEmoji('demo-1', '🔥')" class="emoji-pill">🔥</button>
+                                <button onclick="quickEmoji('demo-1', '💎')" class="emoji-pill">💎</button>
+                                <button onclick="quickEmoji('demo-1', '🎧')" class="emoji-pill">🎧</button>
+                                <button onclick="quickEmoji('demo-1', '🚀')" class="emoji-pill">🚀</button>
+                            </div>
+                            <div id="thread-list-demo-1" class="max-h-40 overflow-y-auto mb-4">
+                                <div class="comment-bubble">
+                                    <span class="text-[#F57C00] font-black mr-2">Jessica:</span> Need a feature on this one? 🔥
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 bg-white/5 rounded-2xl p-2 pl-4 border border-white/5">
+                                <input type="text" id="input-demo-1" placeholder="Write a comment..." class="flex-1 bg-transparent py-2 outline-none text-xs font-bold placeholder:opacity-30">
+                                <button onclick="postComment('demo-1')" class="w-8 h-8 bg-[#F57C00] rounded-xl flex items-center justify-center text-black"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section id="chat-page" class="hidden px-6 pt-4 pb-32">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-black uppercase italic">Pulse Chat</h2>
+                    <button onclick="toggleRequests()" class="text-[10px] font-black text-[#F57C00] bg-[#F57C00]/10 px-3 py-1 rounded-full uppercase tracking-widest">
+                        Requests (<span id="req-count">1</span>)
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <div class="bg-zinc-900/60 border border-white/5 rounded-2xl px-4 py-3 flex items-center gap-3 focus-within:border-[#F57C00]/30 transition-all">
+                        <i data-lucide="search" class="w-4 h-4 text-zinc-600"></i>
+                        <input type="text" id="chat-search" oninput="renderChats(this.value)" placeholder="Search connections..." class="bg-transparent outline-none w-full text-xs font-bold placeholder-zinc-700">
+                    </div>
+                </div>
+                
+                <div id="requests-panel" class="hidden mb-8 p-4 bg-zinc-900/60 rounded-3xl border border-dashed border-[#F57C00]/30">
+                    <p class="text-[10px] font-black text-zinc-500 uppercase mb-4">New Request</p>
+                    <div id="request-item-101" class="flex items-center gap-4">
+                        <img src="https://i.pravatar.cc/150?u=unknown" class="w-10 h-10 rounded-xl">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm">Shadow_Rec</h4>
+                            <p class="text-[10px] opacity-40">Wants to send a Wave</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="acceptRequest(101)" class="bg-[#F57C00] text-black text-[10px] font-black px-3 py-2 rounded-xl active:scale-95 transition-transform">ACCEPT</button>
+                            <button onclick="blockUser(101, 'Shadow_Rec')" class="bg-red-600/20 text-red-500 text-[10px] font-black px-3 py-2 rounded-xl hover:bg-red-600 hover:text-white transition-all">BLOCK</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4" id="active-chats">
+                </div>
+            </section>
+
+            <section id="vault-page" class="hidden px-6 pt-4 pb-32">
+                <h2 class="text-2xl font-black uppercase italic mb-6">Your Vault</h2>
+                <div id="vault-list" class="space-y-4"></div>
+            </section>
+        </main>
+
+        <nav class="fixed bottom-0 inset-x-0 bg-black/80 backdrop-blur-2xl border-t border-white/5 px-8 pt-4 pb-10 flex justify-between items-center z-50">
+            <button onclick="switchTab('wave')" class="nav-item nav-active flex flex-col items-center gap-1"><i data-lucide="layout-grid" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase">Wave</span></button>
+            <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 text-zinc-500"><i data-lucide="message-circle" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase">Chat</span></button>
+            <div class="absolute left-1/2 -translate-x-1/2 -top-6">
+                <button onclick="togglePulseCreator()" class="w-16 h-16 bg-[#F57C00] rounded-[2rem] shadow-[0_10px_30px_rgba(245,124,0,0.4)] flex items-center justify-center active:scale-90 transition-all"><i data-lucide="zap" class="w-8 h-8 text-black fill-black"></i></button>
+            </div>
+            <button class="nav-item flex flex-col items-center gap-1 text-zinc-500"><i data-lucide="users" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase">Groups</span></button>
+            <button onclick="switchTab('me')" class="nav-item flex flex-col items-center gap-1 text-zinc-500"><i data-lucide="user" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase">Me</span></button>
+        </nav>
+    </div>
+
+    <div id="pulse-creator" class="hidden fixed inset-0 bg-black z-[600]"></div>
+
+    <script>
+        // --- DATA STATE ---
+        let chats = [
+            { id: 1, name: 'Jessica Griffin', message: 'Active now', time: 'NOW', avatar: 'https://i.pravatar.cc/150?u=jessica', status: 'online', isAccepted: true },
+            { id: 2, name: 'Boss Clintzy', message: 'The mobile site is live! 🍊', time: '12:45 AM', avatar: 'https://i.pravatar.cc/150?u=clint', status: 'online', isAccepted: true }
+        ];
+
+        let messageRequests = [
+            { id: 101, name: 'Shadow_Rec', message: 'Wants to send a Wave', avatar: 'https://i.pravatar.cc/150?u=unknown' }
+        ];
+
+        let blockedUsers = [];
+
+        // --- CORE FUNCTIONS ---
+        lucide.createIcons();
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('splash-screen').style.visibility = 'hidden', 500);
+            }, 2500);
+            renderChats();
+        });
+
+        const slider = document.getElementById('verify-slider');
+        slider.addEventListener('input', (e) => { if(e.target.value > 95) finalizeAuth(); });
+
+        function finalizeAuth() {
+            document.getElementById('auth-screen').style.transform = 'translateY(-100%)';
+            document.getElementById('app-content').style.opacity = '1';
+        }
+
+        function toggleMenu() { document.getElementById('more-menu').classList.toggle('hidden'); }
+
+        function switchTab(tab) {
+            document.getElementById('home-section').classList.toggle('hidden', tab !== 'wave');
+            document.getElementById('chat-page').classList.toggle('hidden', tab !== 'chat');
+            document.getElementById('vault-page').classList.toggle('hidden', tab !== 'vault');
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if(text.includes(tab)) {
+                    item.classList.add('nav-active');
+                    item.classList.remove('text-zinc-500');
+                } else {
+                    item.classList.remove('nav-active');
+                    item.classList.add('text-zinc-500');
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // --- CHAT & PRIVACY LOGIC ---
+        function toggleRequests() {
+            document.getElementById('requests-panel').classList.toggle('hidden');
+        }
+
+        function renderChats(searchTerm = "") {
+            const container = document.getElementById('active-chats');
+            const reqCountEl = document.getElementById('req-count');
+            
+            if(reqCountEl) reqCountEl.innerText = messageRequests.length;
+
+            const filtered = chats.filter(chat => 
+                chat.isAccepted && 
+                !blockedUsers.includes(chat.id) &&
+                chat.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (filtered.length === 0 && searchTerm !== "") {
+                container.innerHTML = `<p class="text-center text-zinc-600 text-[10px] font-black uppercase mt-10">No connections found</p>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(chat => `
+                <div class="flex items-center gap-4 bg-zinc-900/40 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all cursor-pointer">
+                    <img src="${chat.avatar}" class="w-12 h-12 rounded-2xl object-cover">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm text-white">${chat.name}</h4>
+                        <p class="text-[10px] text-[#F57C00] font-bold">${chat.message}</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-600"></i>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function acceptRequest(requestId) {
+            const index = messageRequests.findIndex(r => r.id === requestId);
+            if (index > -1) {
+                const user = messageRequests.splice(index, 1)[0];
+                chats.push({
+                    ...user,
+                    message: 'Connected',
+                    time: 'NOW',
+                    status: 'online',
+                    isAccepted: true
+                });
+                renderChats();
+                document.getElementById('requests-panel').classList.add('hidden');
+            }
+        }
+
+        function blockUser(userId, name) {
+            if (confirm(`Block ${name}?`)) {
+                blockedUsers.push(userId);
+                messageRequests = messageRequests.filter(r => r.id !== userId);
+                chats = chats.filter(c => c.id !== userId);
+                renderChats();
+                document.getElementById('requests-panel').classList.add('hidden');
+            }
+        }
+
+        // --- COMMENT LOGIC ---
+        function toggleComments(postId) {
+            document.getElementById(`comments-${postId}`).classList.toggle('hidden');
+        }
+
+        function quickEmoji(postId, emoji) {
+            const input = document.getElementById(`input-${postId}`);
+            input.value += emoji;
+            postComment(postId);
+        }
+
+        function postComment(postId) {
+            const input = document.getElementById(`input-${postId}`);
+            const thread = document.getElementById(`thread-list-${postId}`);
+            if (!input.value.trim()) return;
+
+            const div = document.createElement('div');
+            div.className = 'comment-bubble fade-in-section';
+            div.innerHTML = `<span class="text-[#F57C00] font-black mr-2">You:</span> ${input.value}`;
+            thread.appendChild(div);
+            input.value = '';
+            thread.scrollTop = thread.scrollHeight;
+        }
+
+        function togglePulseCreator() { document.getElementById('pulse-creator').classList.toggle('hidden'); }
+    </script>
+</body>
+</html>
