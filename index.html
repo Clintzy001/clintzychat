@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ClintzyApp | Pulse Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { 
+            --brand: #F57C00; 
+            --bg-primary: #000000;
+            --bg-secondary: #121212;
+            --text-main: #ffffff;
+            --text-dim: #71717a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border-glass: rgba(255, 255, 255, 0.05);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        }
+
+        .hidden { display: none; }
+        * { -webkit-tap-highlight-color: transparent; scrollbar-width: none; transition: background-color 0.3s ease, color 0.3s ease; }
+        ::-webkit-scrollbar { display: none; }
+
+        body { background-color: var(--bg-primary); color: var(--text-main); font-family: 'Inter', sans-serif; }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed; inset: 0; background: black; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+
+        .pulse-aura { position: relative; }
+        .pulse-aura::after {
+            content: ''; position: absolute; inset: -3px;
+            border-radius: 22px; padding: 2px;
+            background: linear-gradient(45deg, var(--brand), #ffcc00);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate { 100% { filter: hue-rotate(360deg); } }
+
+        .nav-active { color: var(--brand) !important; position: relative; }
+        .nav-active::after {
+            content: ''; position: absolute; bottom: -8px; width: 4px; height: 4px;
+            background: var(--brand); border-radius: 50%;
+        }
+
+        .fade-in-section { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .verification-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        #more-menu { transform-origin: top right; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <div id="splash-screen">
+        <h1 class="text-5xl font-black italic tracking-tighter text-[#F57C00] animate-pulse">Clintzy</h1>
+        <div class="absolute bottom-12 flex flex-col items-center">
+            <div class="flex gap-1 mb-4">
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.4em]">Pulse Pro Engine</p>
+        </div>
+    </div>
+
+    <div id="app-content" class="h-screen flex flex-col opacity-0 transition-opacity duration-700">
+        <header class="px-6 py-5 flex justify-between items-center bg-transparent backdrop-blur-md sticky top-0 z-50">
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-2xl font-black italic tracking-tighter text-[#F57C00]">Clintzy</h1>
+                    <div class="verification-dot"></div>
+                </div>
+                <p class="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600 leading-none mt-1">from Clintzy Tech</p>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button onclick="switchTab('vault')" class="relative"><i data-lucide="bookmark" class="w-6 h-6 text-zinc-400 hover:text-[#F57C00]"></i></button>
+                <button onclick="toggleMenu()"><i data-lucide="menu" class="w-6 h-6 text-zinc-400"></i></button>
+            </div>
+
+            <div id="more-menu" class="hidden absolute top-16 right-6 w-56 bg-[#121212] border border-white/5 rounded-3xl shadow-2xl z-[100] overflow-hidden p-2">
+                <button onclick="switchTab('settings')" class="w-full p-4 text-left text-sm font-bold hover:bg-white/5 rounded-2xl">Pulse Settings</button>
+                <div class="h-[1px] bg-white/5 my-2"></div>
+                <button onclick="initiateSignOut()" class="w-full p-4 text-left text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-2xl">Sign Out</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto">
+            <div id="home-section" class="fade-in-section">
+                <div class="px-6 mb-8 mt-4">
+                    <div class="bg-zinc-900/50 border border-white/5 rounded-[2rem] px-5 py-4 flex items-center gap-4 group focus-within:border-[#F57C00]/50 transition-all">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-[#F57C00]"></i>
+                        <input type="text" placeholder="Ask Clintzy AI..." class="bg-transparent outline-none w-full text-sm font-medium placeholder-zinc-600">
+                    </div>
+                </div>
+
+                <div class="mb-10">
+                    <div class="px-6 flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500">Live Pulse</h3>
+                    </div>
+                    <div class="flex gap-5 overflow-x-auto px-6 pb-2">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-20 h-20 rounded-[2rem] bg-zinc-900 border-2 border-dashed border-zinc-700 flex items-center justify-center cursor-pointer" onclick="togglePulseCreator()">
+                                <i data-lucide="plus" class="w-6 h-6 text-zinc-500"></i>
+                            </div>
+                            <span class="text-[10px] font-bold opacity-40">YOU</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section id="chat-page" class="hidden px-6 pt-4 pb-32">
+                <h2 class="text-2xl font-black uppercase italic mb-6">Pulse Chat</h2>
+                <div class="space-y-4" id="active-chats"></div>
+            </section>
+
+            <section id="group-page" class="hidden px-6 pt-4 pb-32">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-black uppercase italic">Pulse Groups</h2>
+                    <p class="text-[10px] text-zinc-500 font-black tracking-widest uppercase">Connect to private waves</p>
+                </div>
+
+                <div class="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-8 mb-6 text-center">
+                    <div class="w-16 h-16 bg-[#F57C00]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="hash" class="w-8 h-8 text-[#F57C00]"></i>
+                    </div>
+                    <h3 class="font-black text-lg mb-2 uppercase italic">Join a Group</h3>
+                    <p class="text-xs text-zinc-500 mb-6">Enter a 6-digit Pulse Code to access a private group wave.</p>
+                    
+                    <div class="flex gap-2 justify-center mb-8">
+                        <input type="text" maxlength="6" placeholder="000000" class="w-full max-w-[200px] bg-black border border-white/10 rounded-2xl py-4 text-center text-2xl font-black tracking-[0.5em] text-[#F57C00] outline-none focus:border-[#F57C00]">
+                    </div>
+
+                    <button onclick="joinPulseGroup()" class="w-full bg-white text-black font-black py-4 rounded-2xl uppercase tracking-tighter active:scale-95 transition-transform">
+                        Verify Code
+                    </button>
+                </div>
+
+                <h3 class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-4">Your Active Waves</h3>
+                <div class="space-y-4" id="active-groups-list">
+                    <div class="flex items-center gap-4 bg-zinc-900/20 p-4 rounded-3xl border border-white/5">
+                        <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center font-black text-[#F57C00]">
+                            CW
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-white">Clintzy Worldwide</h4>
+                            <p class="text-[9px] text-green-500 font-black uppercase">12 Members Active</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-600"></i>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profile-page" class="hidden px-6 pt-4 pb-32 text-center">
+                <div class="w-24 h-24 rounded-full border-2 border-[#F57C00] p-1 mx-auto mb-4">
+                    <img src="https://i.pravatar.cc/150?u=me" class="w-full h-full rounded-full object-cover">
+                </div>
+                <h2 class="text-xl font-black italic">Pulse Creator</h2>
+                <p class="text-zinc-500 text-[10px] uppercase font-black">Authorized Device</p>
+            </section>
+
+            <section id="vault-page" class="hidden px-6 pt-4 pb-32">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black uppercase italic leading-none">The Vault</h2>
+                        <p class="text-[10px] text-zinc-500 font-bold uppercase mt-2 tracking-widest">Biometric Encrypted</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-black text-[#F57C00] mb-1">72% FULL</p>
+                        <div class="w-24 h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-white/5">
+                            <div class="h-full bg-[#F57C00] w-[72%]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-zinc-900/40 p-5 rounded-[2rem] border border-white/5 group active:scale-95 transition-all">
+                        <div class="w-10 h-10 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
+                            <i data-lucide="image" class="w-5 h-5 text-blue-500"></i>
+                        </div>
+                        <h4 class="text-xs font-black uppercase">Waves</h4>
+                        <p class="text-[9px] text-zinc-600 font-bold">124 Items</p>
+                    </div>
+                    <div class="bg-zinc-900/40 p-5 rounded-[2rem] border border-white/5 group active:scale-95 transition-all">
+                        <div class="w-10 h-10 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-4">
+                            <i data-lucide="mic" class="w-5 h-5 text-purple-500"></i>
+                        </div>
+                        <h4 class="text-xs font-black uppercase">Voice Notes</h4>
+                        <p class="text-[9px] text-zinc-600 font-bold">42 Items</p>
+                    </div>
+                </div>
+
+                <h3 class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-4">Recent Keys</h3>
+                
+                <div class="space-y-3" id="vault-list">
+                    <div class="flex items-center gap-4 bg-zinc-900/20 p-4 rounded-3xl border border-white/5">
+                        <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
+                            <i data-lucide="lock" class="w-5 h-5 text-zinc-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold">studio_session_v1.mp4</h4>
+                            <p class="text-[9px] text-zinc-600 font-black uppercase">Locked • 12.4 MB</p>
+                        </div>
+                        <button class="text-zinc-500"><i data-lucide="download" class="w-4 h-4"></i></button>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 bg-zinc-900/20 p-4 rounded-3xl border border-white/5 opacity-50">
+                        <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
+                            <i data-lucide="file-text" class="w-5 h-5 text-zinc-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold">contract_draft.pdf</h4>
+                            <p class="text-[9px] text-zinc-600 font-black uppercase">Expired Key • 1.1 MB</p>
+                        </div>
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-900"></i>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <nav class="fixed bottom-0 inset-x-0 bg-black/80 backdrop-blur-2xl border-t border-white/5 px-8 pt-4 pb-10 flex justify-between items-center z-50">
+            <button onclick="switchTab('wave')" class="nav-item nav-active flex flex-col items-center gap-1">
+                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Wave</span>
+            </button>
+            <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="message-circle" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Chat</span>
+            </button>
+            <div class="absolute left-1/2 -translate-x-1/2 -top-6">
+                <button onclick="togglePulseCreator()" class="w-16 h-16 bg-[#F57C00] rounded-[2rem] shadow-[0_10px_30px_rgba(245,124,0,0.4)] flex items-center justify-center active:scale-90 transition-all">
+                    <i data-lucide="zap" class="w-8 h-8 text-black fill-black"></i>
+                </button>
+            </div>
+            <button onclick="switchTab('group')" class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="users" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Groups</span>
+            </button>
+            <button onclick="switchTab('profile')" class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Me</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="pulse-creator" class="hidden fixed inset-0 bg-black z-[600] flex flex-col">
+        <div class="p-6 flex justify-between items-center z-10">
+            <button onclick="togglePulseCreator()" class="text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+            <h2 class="text-sm font-black italic tracking-widest text-[#F57C00]">NEW WAVE</h2>
+            <button onclick="flipCamera()" class="text-white"><i data-lucide="refresh-cw" class="w-6 h-6"></i></button>
+        </div>
+        <div class="flex-1 relative bg-zinc-900 overflow-hidden">
+            <video id="viewfinder" autoplay playsinline class="w-full h-full object-cover"></video>
+            <div class="absolute bottom-10 inset-x-0 px-6">
+                <textarea id="post-caption" placeholder="Add a caption..." class="w-full bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white text-sm outline-none focus:border-[#F57C00]"></textarea>
+            </div>
+        </div>
+        <div class="p-8 bg-black">
+            <div class="flex justify-around items-center mb-8">
+                <label class="flex flex-col items-center gap-2 cursor-pointer">
+                    <i data-lucide="image" class="text-zinc-500"></i>
+                    <span class="text-[8px] font-black uppercase">Media</span>
+                    <input type="file" class="hidden" accept="image/*,video/*">
+                </label>
+                <button class="w-20 h-20 rounded-full border-4 border-white p-1">
+                    <div class="w-full h-full bg-red-600 rounded-full"></div>
+                </button>
+                <label class="flex flex-col items-center gap-2 cursor-pointer">
+                    <i data-lucide="music" class="text-zinc-500"></i>
+                    <span class="text-[8px] font-black uppercase">Audio</span>
+                    <input type="file" class="hidden" accept="audio/*">
+                </label>
+            </div>
+            <button onclick="togglePulseCreator()" class="w-full bg-[#F57C00] text-black font-black py-4 rounded-2xl uppercase tracking-widest">Publish Wave</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        let currentStream = null;
+        let useFrontCamera = true;
+        let chats = [
+            { id: 1, name: 'Jessica Griffin', message: 'Active now', avatar: 'https://i.pravatar.cc/150?u=jessica' },
+            { id: 2, name: 'Boss Clintzy', message: 'Pulse Pro is live! 🍊', avatar: 'https://i.pravatar.cc/150?u=clint' }
+        ];
+
+        // --- GATEKEEPER Handshake ---
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('pulse_authorized') !== 'true') {
+                window.location.href = "auth.html";
+            } else {
+                finalizeAuth();
+            }
+
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('splash-screen').style.visibility = 'hidden', 500);
+            }, 2500);
+        });
+
+        function finalizeAuth() {
+            document.getElementById('app-content').style.opacity = '1';
+            renderChats();
+        }
+
+        function initiateSignOut() {
+            if (confirm("Sign out of Pulse?")) {
+                localStorage.removeItem('pulse_authorized');
+                window.location.href = "auth.html";
+            }
+        }
+
+        // --- JOIN GROUP LOGIC ---
+        function joinPulseGroup() {
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "VERIFYING...";
+            btn.classList.add('opacity-50');
+
+            setTimeout(() => {
+                alert("Pulse Code Verified. Group Added to your Waves.");
+                btn.innerText = originalText;
+                btn.classList.remove('opacity-50');
+            }, 1500);
+        }
+
+        // --- NAVIGATION & UI ---
+        function toggleMenu() { document.getElementById('more-menu').classList.toggle('hidden'); }
+
+        function switchTab(tab) {
+            const ids = ['home-section', 'chat-page', 'vault-page', 'group-page', 'profile-page'];
+            ids.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+
+            const targetId = (tab === 'wave') ? 'home-section' : `${tab}-page`;
+            const target = document.getElementById(targetId);
+            if(target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if(text.includes(tab)) {
+                    item.classList.add('nav-active');
+                    item.classList.remove('text-zinc-500');
+                } else {
+                    item.classList.remove('nav-active');
+                    item.classList.add('text-zinc-500');
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // --- CAMERA LOGIC ---
+        async function togglePulseCreator() {
+            const creator = document.getElementById('pulse-creator');
+            const isOpening = creator.classList.contains('hidden');
+            creator.classList.toggle('hidden');
+            if (isOpening) startCamera();
+            else if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+        }
+
+        async function startCamera() {
+            try {
+                if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+                currentStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: useFrontCamera ? "user" : "environment" } 
+                });
+                document.getElementById('viewfinder').srcObject = currentStream;
+            } catch (err) { alert("Camera Denied"); }
+        }
+
+        function flipCamera() { useFrontCamera = !useFrontCamera; startCamera(); }
+
+        // --- RENDER CHATS ---
+        function renderChats() {
+            const container = document.getElementById('active-chats');
+            if(!container) return;
+            container.innerHTML = chats.map(chat => `
+                <div class="flex items-center gap-4 bg-zinc-900/40 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all cursor-pointer">
+                    <img src="${chat.avatar}" class="w-12 h-12 rounded-2xl object-cover">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm text-white">${chat.name}</h4>
+                        <p class="text-[10px] text-[#F57C00] font-bold">${chat.message}</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-600"></i>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
