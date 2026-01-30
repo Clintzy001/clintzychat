@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clintzy Calls</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .menu-animate {
+            transform-origin: top right;
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+        }
+        .hidden { display: none; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .call-row:active { background-color: #1a1a1a; }
+        
+        .brand-glow {
+            filter: drop-shadow(0 0 8px rgba(245, 124, 0, 0.3));
+        }
+
+        /* Fullscreen Search Transition */
+        #search-overlay {
+            transition: transform 0.3s ease-in-out;
+            transform: translateY(-100%);
+        }
+        #search-overlay.active { transform: translateY(0); }
+
+        /* Calling Screen Animation */
+        #calling-screen {
+            transition: opacity 0.4s ease-out, visibility 0.4s;
+        }
+    </style>
+</head>
+<body class="bg-black text-white h-screen flex flex-col overflow-hidden select-none">
+
+    <header class="bg-black px-4 py-3 flex justify-between items-center border-b border-zinc-900 sticky top-0 z-50">
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Calls</h1>
+        
+        <div class="flex items-center space-x-5 text-zinc-400">
+            <i data-lucide="search" class="w-6 h-6 hover:text-[#F57C00] cursor-pointer transition-colors" onclick="toggleSearch(true)"></i>
+            <div class="relative">
+                <i data-lucide="more-vertical" class="w-6 h-6 hover:text-[#F57C00] cursor-pointer transition-colors" onclick="toggleCallsMenu(event)"></i>
+                
+                <div id="calls-menu" class="hidden absolute top-10 right-0 w-52 bg-[#1a1a1a] border border-zinc-800 rounded-xl shadow-2xl z-[100] menu-animate shadow-black">
+                    <div class="py-2 flex flex-col text-[15px] text-zinc-200">
+                        <button onclick="handleCallAction('scheduled')" class="px-4 py-2.5 text-left active:bg-zinc-800">Scheduled calls</button>
+                        <button onclick="handleCallAction('settings')" class="px-4 py-2.5 text-left active:bg-zinc-800">Settings</button>
+                        <div class="border-t border-zinc-800/50 my-1"></div>
+                        <button onclick="handleCallAction('switch')" class="px-4 py-2.5 text-left active:bg-zinc-800 flex items-center">
+                            <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                            Switch accounts
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="search-overlay" class="fixed inset-0 bg-black z-[200] flex flex-col">
+        <div class="px-4 py-3 flex items-center space-x-4 border-b border-zinc-800">
+            <i data-lucide="arrow-left" class="w-6 h-6 text-[#F57C00] cursor-pointer" onclick="toggleSearch(false)"></i>
+            <input type="text" id="search-input" placeholder="Search calls..." class="bg-transparent flex-1 outline-none text-lg text-white">
+        </div>
+        <div class="p-8 text-center text-zinc-500 text-sm">Start typing to search call history</div>
+    </div>
+
+    <div id="calling-screen" class="fixed inset-0 bg-[#0a0a0a] z-[300] hidden opacity-0 flex flex-col items-center justify-between py-20">
+        <div class="text-center">
+            <div class="w-32 h-32 rounded-full border-2 border-[#F57C00] p-1 mx-auto mb-6">
+                <img id="calling-avatar" src="" class="w-full h-full rounded-full object-cover">
+            </div>
+            <h2 id="calling-name" class="text-3xl font-bold mb-2"></h2>
+            <p class="text-[#F57C00] animate-pulse tracking-widest text-sm font-medium">RINGING...</p>
+        </div>
+
+        <div class="flex flex-col items-center space-y-12">
+            <div class="grid grid-cols-3 gap-12 text-zinc-400">
+                <div class="flex flex-col items-center space-y-2"><i data-lucide="mic-off" class="w-7 h-7"></i><span class="text-[10px]">Mute</span></div>
+                <div class="flex flex-col items-center space-y-2"><i data-lucide="video" class="w-7 h-7"></i><span class="text-[10px]">Video</span></div>
+                <div class="flex flex-col items-center space-y-2"><i data-lucide="volume-2" class="w-7 h-7"></i><span class="text-[10px]">Speaker</span></div>
+            </div>
+            <button onclick="endCall()" class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+                <i data-lucide="phone-off" class="w-8 h-8 text-white"></i>
+            </button>
+        </div>
+    </div>
+
+    <main id="calls-container" class="flex-1 overflow-y-auto"></main>
+
+    <button class="fixed bottom-24 right-6 bg-[#F57C00] text-white font-bold p-4 rounded-2xl shadow-lg shadow-orange-900/20 flex items-center space-x-2 active:scale-90 transition-transform z-40">
+        <i data-lucide="phone-call" class="w-6 h-6"></i>
+        <span>Start a call</span>
+    </button>
+
+    <nav class="bg-black border-t border-zinc-900 px-2 py-2 flex justify-around items-center pb-safe z-50">
+        <div class="nav-item flex flex-col items-center cursor-pointer text-zinc-500" onclick="location.href='index.html'">
+            <i data-lucide="message-square" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px] font-medium uppercase tracking-widest">Chats</span>
+        </div>
+        <div class="nav-item flex flex-col items-center text-zinc-500 cursor-pointer" onclick="location.href='updates.html'">
+            <i data-lucide="aperture" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px] font-medium uppercase tracking-widest">Updates</span>
+        </div>
+        <div class="nav-item flex flex-col items-center text-zinc-500 cursor-pointer">
+            <i data-lucide="users" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px] font-medium uppercase tracking-widest">Groups</span>
+        </div>
+        <div class="nav-item flex flex-col items-center text-[#F57C00] cursor-pointer">
+            <div class="bg-orange-500/10 px-5 py-1 rounded-full mb-1">
+                <i data-lucide="phone" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest">Calls</span>
+        </div>
+    </nav>
+
+    <script>
+        const callLogs = [
+            { id: 1, name: 'Boss Clintzy', time: 'Today, 2:08 AM', type: 'incoming', media: 'audio', avatar: 'https://i.pravatar.cc/150?u=clint', missed: false },
+            { id: 2, name: 'Jessica Griffin', time: 'Yesterday, 11:45 PM', type: 'outgoing', media: 'video', avatar: 'https://i.pravatar.cc/150?u=jessica', missed: true },
+            { id: 3, name: 'David Adeyemi', time: 'January 28, 10:10 AM', type: 'incoming', media: 'audio', avatar: 'https://i.pravatar.cc/150?u=david', missed: false }
+        ];
+
+        function renderCalls() {
+            const container = document.getElementById('calls-container');
+            if (callLogs.length === 0) {
+                container.className = "flex-1 flex flex-col items-center justify-center px-8 text-center";
+                container.innerHTML = `
+                    <div class="relative mb-8">
+                        <div class="w-48 h-48 bg-zinc-900/30 rounded-full flex items-center justify-center">
+                            <i data-lucide="shield-check" class="w-24 h-24 text-orange-500/10 absolute"></i>
+                            <i data-lucide="phone" class="w-20 h-20 text-[#F57C00] brand-glow"></i>
+                        </div>
+                        <div class="absolute -bottom-2 -right-2 bg-black p-2 rounded-full border-4 border-black"><i data-lucide="heart" class="w-8 h-8 text-orange-200 fill-orange-200"></i></div>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-3 text-zinc-100">Make private calls</h2>
+                    <p class="text-zinc-500 text-[15px] leading-relaxed max-w-xs">Secure video and audio calls for everyone.</p>`;
+            } else {
+                container.className = "flex-1 overflow-y-auto pt-2";
+                container.innerHTML = `<p class="px-4 py-2 text-xs font-bold text-zinc-600 uppercase tracking-widest">Recent</p>
+                    <div class="divide-y divide-zinc-900/50">
+                        ${callLogs.map(call => `
+                            <div class="call-row flex items-center p-4 transition-colors cursor-pointer" onclick="startCall('${call.name}', '${call.avatar}')">
+                                <img src="${call.avatar}" class="w-12 h-12 rounded-full object-cover mr-4 border border-zinc-800">
+                                <div class="flex-1">
+                                    <h3 class="font-bold ${call.missed ? 'text-red-500' : 'text-zinc-100'}">${call.name}</h3>
+                                    <div class="flex items-center text-zinc-500 text-sm mt-0.5">
+                                        <i data-lucide="${call.type === 'incoming' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4 mr-1 ${call.missed ? 'text-red-500' : 'text-[#F57C00]'}"></i>
+                                        <span>${call.time}</span>
+                                    </div>
+                                </div>
+                                <i data-lucide="${call.media === 'video' ? 'video' : 'phone'}" class="w-5 h-5 text-[#F57C00]"></i>
+                            </div>`).join('')}
+                    </div>`;
+            }
+            lucide.createIcons();
+        }
+
+        function toggleSearch(show) {
+            const overlay = document.getElementById('search-overlay');
+            overlay.classList.toggle('active', show);
+            if(show) document.getElementById('search-input').focus();
+        }
+
+        function startCall(name, avatar) {
+            const screen = document.getElementById('calling-screen');
+            document.getElementById('calling-name').innerText = name;
+            document.getElementById('calling-avatar').src = avatar;
+            screen.classList.remove('hidden');
+            setTimeout(() => screen.classList.add('opacity-100'), 10);
+        }
+
+        function endCall() {
+            const screen = document.getElementById('calling-screen');
+            screen.classList.remove('opacity-100');
+            setTimeout(() => screen.classList.add('hidden'), 400);
+        }
+
+        function toggleCallsMenu(event) {
+            event.stopPropagation();
+            document.getElementById('calls-menu').classList.toggle('hidden');
+        }
+
+        window.onclick = (e) => {
+            const menu = document.getElementById('calls-menu');
+            if (menu && !menu.contains(e.target)) menu.classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', renderCalls);
+    </script>
+</body>
+</html>
