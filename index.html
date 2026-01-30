@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ClintzyApp | Pulse Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { 
+            --brand: #F57C00; 
+            --bg-primary: #000000;
+            --bg-secondary: #121212;
+            --text-main: #ffffff;
+            --text-dim: #71717a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border-glass: rgba(255, 255, 255, 0.05);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        }
+
+        .hidden { display: none; }
+        * { -webkit-tap-highlight-color: transparent; scrollbar-width: none; transition: background-color 0.3s ease, color 0.3s ease; }
+        ::-webkit-scrollbar { display: none; }
+
+        body { background-color: var(--bg-primary); color: var(--text-main); font-family: 'Inter', sans-serif; }
+
+        /* Splash & Animations */
+        #splash-screen {
+            position: fixed; inset: 0; background: black; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+
+        .pulse-aura { position: relative; }
+        .pulse-aura::after {
+            content: ''; position: absolute; inset: -3px;
+            border-radius: 22px; padding: 2px;
+            background: linear-gradient(45deg, var(--brand), #ffcc00);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate { 100% { filter: hue-rotate(360deg); } }
+
+        .nav-active { color: var(--brand) !important; position: relative; }
+        .nav-active::after {
+            content: ''; position: absolute; bottom: -8px; width: 4px; height: 4px;
+            background: var(--brand); border-radius: 50%;
+        }
+
+        .fade-in-section { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .verification-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+
+        #more-menu { transform-origin: top right; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .music-card { background: linear-gradient(145deg, #1a1a1a, #0a0a0a); border: 1px solid var(--border-glass); }
+        
+        /* Comment & Emoji Styling */
+        .comment-thread { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 15px; padding-top: 15px; }
+        .comment-bubble { background: rgba(255,255,255,0.03); border-radius: 18px; padding: 8px 12px; font-size: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.02); }
+        .emoji-pill { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .emoji-pill:hover { background: var(--brand); transform: translateY(-2px); }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <div id="splash-screen">
+        <h1 class="text-5xl font-black italic tracking-tighter text-[#F57C00] animate-pulse">Clintzy</h1>
+        <div class="absolute bottom-12 flex flex-col items-center">
+            <div class="flex gap-1 mb-4">
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.4em]">Pulse Pro Engine</p>
+        </div>
+    </div>
+
+    <div id="auth-screen" class="fixed inset-0 z-[500] bg-black flex flex-col px-8 justify-center transition-all duration-700">
+        <div id="auth-form-container">
+            <div class="mb-12">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-green-500"></i>
+                    <span class="text-[10px] font-bold text-green-500 uppercase tracking-widest">End-to-End Encrypted</span>
+                </div>
+                <h2 id="auth-title" class="text-5xl font-black italic tracking-tighter text-white">JOIN THE<br><span class="text-[#F57C00]">PULSE.</span></h2>
+            </div>
+            <div class="space-y-4">
+                <input type="email" id="auth-email" placeholder="EMAIL ADDRESS" class="auth-input w-full p-5 rounded-3xl text-sm font-bold tracking-widest outline-none border-white/5 bg-white/5 focus:border-[#F57C00]/50">
+                <input type="password" id="auth-pass" placeholder="PASSWORD" class="auth-input w-full p-5 rounded-3xl text-sm font-bold tracking-widest outline-none border-white/5 bg-white/5 focus:border-[#F57C00]/50">
+                <div id="security-verification" class="p-5 bg-white/5 rounded-3xl border border-white/5">
+                    <p class="text-[10px] font-black uppercase text-zinc-500 mb-3">Slide to verify identity</p>
+                    <input type="range" id="verify-slider" min="0" max="100" value="0" class="w-full accent-[#F57C00] h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+                <button onclick="finalizeAuth()" class="w-full bg-[#F57C00] text-black font-black p-5 rounded-3xl uppercase tracking-tighter text-lg active:scale-95 transition-transform">Authorize Device</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-content" class="h-screen flex flex-col opacity-0 transition-opacity duration-700">
+        <header class="px-6 py-5 flex justify-between items-center bg-transparent backdrop-blur-md sticky top-0 z-50">
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-2xl font-black italic tracking-tighter text-[#F57C00]">Clintzy</h1>
+                    <div class="verification-dot"></div>
+                </div>
+                <p class="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600 leading-none mt-1">from Clintzy Tech</p>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button onclick="switchTab('vault')" class="relative"><i data-lucide="bookmark" class="w-6 h-6 text-zinc-400 hover:text-[#F57C00]"></i></button>
+                <button onclick="toggleMenu()"><i data-lucide="menu" class="w-6 h-6 text-zinc-400"></i></button>
+            </div>
+
+            <div id="more-menu" class="hidden absolute top-16 right-6 w-56 bg-[#121212] border border-white/5 rounded-3xl shadow-2xl z-[100] overflow-hidden p-2">
+                <button onclick="switchTab('settings')" class="w-full p-4 text-left text-sm font-bold hover:bg-white/5 rounded-2xl">Pulse Settings</button>
+                <div class="h-[1px] bg-white/5 my-2"></div>
+                <button onclick="initiateSignOut()" class="w-full p-4 text-left text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-2xl">Sign Out</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto">
+            <div id="home-section" class="fade-in-section">
+                <div class="px-6 mb-8 mt-4">
+                    <div class="bg-zinc-900/50 border border-white/5 rounded-[2rem] px-5 py-4 flex items-center gap-4 group focus-within:border-[#F57C00]/50 transition-all">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-[#F57C00]"></i>
+                        <input type="text" placeholder="Ask Clintzy AI..." class="bg-transparent outline-none w-full text-sm font-medium placeholder-zinc-600">
+                    </div>
+                </div>
+
+                <div class="mb-10">
+                    <div class="px-6 flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500">Live Pulse</h3>
+                    </div>
+                    <div class="flex gap-5 overflow-x-auto px-6 pb-2">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-20 h-20 rounded-[2rem] bg-zinc-900 border-2 border-dashed border-zinc-700 flex items-center justify-center cursor-pointer" onclick="togglePulseCreator()">
+                                <i data-lucide="plus" class="w-6 h-6 text-zinc-500"></i>
+                            </div>
+                            <span class="text-[10px] font-bold opacity-40">YOU</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                            <div class="w-20 h-20 rounded-[2rem] overflow-hidden pulse-aura relative">
+                                <img src="https://i.pravatar.cc/150?u=jessica" class="w-full h-full object-cover">
+                                <div class="absolute bottom-1 right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-black"></div>
+                            </div>
+                            <span class="text-[10px] font-black group-hover:text-[#F57C00]">JESSICA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 pb-32" id="waves-feed">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500 mb-6">Recent Waves</h3>
+                    <div class="bg-zinc-900/40 p-6 rounded-[2.5rem] border border-white/5 mb-6 fade-in-section">
+                        <div class="flex items-center gap-4 mb-4">
+                            <img src="https://i.pravatar.cc/150?u=marcus" class="w-10 h-10 rounded-xl object-cover">
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm">Marcus V.</h4>
+                                <p class="text-[10px] opacity-40 font-black uppercase">2m ago</p>
+                            </div>
+                        </div>
+                        <p class="text-sm font-medium mb-4">Midnight studio sessions hitting different. 🎹</p>
+                    </div>
+                </div>
+            </div>
+
+            <section id="chat-page" class="hidden px-6 pt-4 pb-32">
+                <h2 class="text-2xl font-black uppercase italic mb-6">Pulse Chat</h2>
+                <div class="space-y-4" id="active-chats"></div>
+            </section>
+
+            <section id="group-page" class="hidden px-6 pt-4 pb-32">
+                <h2 class="text-2xl font-black uppercase italic mb-6">Pulse Groups</h2>
+                <div class="bg-zinc-900/40 p-10 rounded-3xl border border-dashed border-zinc-800 text-center">
+                    <i data-lucide="users" class="w-10 h-10 text-zinc-700 mx-auto mb-4"></i>
+                    <p class="text-zinc-500 text-xs font-bold">No active groups joined yet.</p>
+                </div>
+            </section>
+
+            <section id="profile-page" class="hidden px-6 pt-4 pb-32 text-center">
+                <div class="w-24 h-24 rounded-full border-2 border-[#F57C00] p-1 mx-auto mb-4">
+                    <img src="https://i.pravatar.cc/150?u=me" class="w-full h-full rounded-full object-cover">
+                </div>
+                <h2 class="text-xl font-black italic">Pulse Creator</h2>
+                <p class="text-zinc-500 text-xs uppercase font-black">@clintzy_pro</p>
+            </section>
+
+            <section id="vault-page" class="hidden px-6 pt-4 pb-32">
+                <h2 class="text-2xl font-black uppercase italic mb-6">Your Vault</h2>
+                <div id="vault-list" class="space-y-4"></div>
+            </section>
+        </main>
+
+        <nav class="fixed bottom-0 inset-x-0 bg-black/80 backdrop-blur-2xl border-t border-white/5 px-8 pt-4 pb-10 flex justify-between items-center z-50">
+            <button onclick="switchTab('wave')" class="nav-item nav-active flex flex-col items-center gap-1">
+                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Wave</span>
+            </button>
+            <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="message-circle" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Chat</span>
+            </button>
+            <div class="absolute left-1/2 -translate-x-1/2 -top-6">
+                <button onclick="togglePulseCreator()" class="w-16 h-16 bg-[#F57C00] rounded-[2rem] shadow-[0_10px_30px_rgba(245,124,0,0.4)] flex items-center justify-center active:scale-90 transition-all">
+                    <i data-lucide="zap" class="w-8 h-8 text-black fill-black"></i>
+                </button>
+            </div>
+            <button onclick="switchTab('group')" class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="users" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Groups</span>
+            </button>
+            <button onclick="switchTab('profile')" class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase">Me</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="pulse-creator" class="hidden fixed inset-0 bg-black z-[600] flex flex-col">
+        <div class="p-6 flex justify-between items-center z-10">
+            <button onclick="togglePulseCreator()" class="text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+            <h2 class="text-sm font-black italic tracking-widest text-[#F57C00]">NEW WAVE</h2>
+            <button id="flip-camera" onclick="flipCamera()" class="text-white"><i data-lucide="refresh-cw" class="w-6 h-6"></i></button>
+        </div>
+
+        <div class="flex-1 relative bg-zinc-900 overflow-hidden">
+            <video id="viewfinder" autoplay playsinline class="w-full h-full object-cover"></video>
+            <div class="absolute bottom-10 inset-x-0 px-6">
+                <textarea id="post-caption" placeholder="Add a caption..." class="w-full bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white text-sm outline-none focus:border-[#F57C00]"></textarea>
+            </div>
+        </div>
+
+        <div class="p-8 bg-black">
+            <div class="flex justify-around items-center mb-8">
+                <label class="flex flex-col items-center gap-2 cursor-pointer">
+                    <i data-lucide="image" class="text-zinc-500"></i>
+                    <span class="text-[8px] font-black uppercase">Media</span>
+                    <input type="file" class="hidden" accept="image/*,video/*">
+                </label>
+                <button class="w-20 h-20 rounded-full border-4 border-white p-1">
+                    <div class="w-full h-full bg-red-600 rounded-full flex items-center justify-center">
+                        <div id="rec-dot" class="w-4 h-4 bg-white rounded-sm hidden animate-pulse"></div>
+                    </div>
+                </button>
+                <label class="flex flex-col items-center gap-2 cursor-pointer">
+                    <i data-lucide="music" class="text-zinc-500"></i>
+                    <span class="text-[8px] font-black uppercase">Audio</span>
+                    <input type="file" class="hidden" accept="audio/*">
+                </label>
+            </div>
+            <button onclick="publishWave()" class="w-full bg-[#F57C00] text-black font-black py-4 rounded-2xl uppercase tracking-widest">Publish Wave</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        let currentStream = null;
+        let useFrontCamera = true;
+        let chats = [
+            { id: 1, name: 'Jessica Griffin', message: 'Active now', time: 'NOW', avatar: 'https://i.pravatar.cc/150?u=jessica', status: 'online', isAccepted: true },
+            { id: 2, name: 'Boss Clintzy', message: 'The mobile site is live! 🍊', time: '12:45 AM', avatar: 'https://i.pravatar.cc/150?u=clint', status: 'online', isAccepted: true }
+        ];
+
+        // --- AUTH & SIGN OUT ---
+        function finalizeAuth() {
+            localStorage.setItem('pulse_authorized', 'true');
+            document.getElementById('auth-screen').style.transform = 'translateY(-100%)';
+            document.getElementById('app-content').style.opacity = '1';
+        }
+
+        function initiateSignOut() {
+            if (confirm("Sign out of Pulse? Your session will be terminated.")) {
+                localStorage.removeItem('pulse_authorized');
+                window.location.href = "auth.html";
+            }
+        }
+
+        // --- NAVIGATION & UI ---
+        function toggleMenu() { document.getElementById('more-menu').classList.toggle('hidden'); }
+
+        function switchTab(tab) {
+            const ids = ['home-section', 'chat-page', 'vault-page', 'group-page', 'profile-page'];
+            ids.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+
+            const targetId = tab === 'wave' ? 'home-section' : `${tab}-page`;
+            document.getElementById(targetId)?.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if(text.includes(tab)) {
+                    item.classList.add('nav-active');
+                    item.classList.remove('text-zinc-500');
+                } else {
+                    item.classList.remove('nav-active');
+                    item.classList.add('text-zinc-500');
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // --- CREATOR & CAMERA ---
+        async function togglePulseCreator() {
+            const creator = document.getElementById('pulse-creator');
+            const isOpening = creator.classList.contains('hidden');
+            creator.classList.toggle('hidden');
+
+            if (isOpening) {
+                startCamera();
+            } else if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        async function startCamera() {
+            if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: useFrontCamera ? "user" : "environment" },
+                    audio: true
+                });
+                document.getElementById('viewfinder').srcObject = currentStream;
+            } catch (err) {
+                alert("Camera Access Denied!");
+                togglePulseCreator();
+            }
+        }
+
+        function flipCamera() {
+            useFrontCamera = !useFrontCamera;
+            startCamera();
+        }
+
+        function publishWave() {
+            const caption = document.getElementById('post-caption').value;
+            alert(`Wave Published: ${caption}`);
+            togglePulseCreator();
+        }
+
+        function renderChats() {
+            const container = document.getElementById('active-chats');
+            if(!container) return;
+            container.innerHTML = chats.map(chat => `
+                <div class="flex items-center gap-4 bg-zinc-900/40 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all cursor-pointer">
+                    <img src="${chat.avatar}" class="w-12 h-12 rounded-2xl object-cover">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm text-white">${chat.name}</h4>
+                        <p class="text-[10px] text-[#F57C00] font-bold">${chat.message}</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-600"></i>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- INIT ---
+        window.addEventListener('load', () => {
+            if(localStorage.getItem('pulse_authorized') === 'true') finalizeAuth();
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('splash-screen').style.visibility = 'hidden', 500);
+            }, 2500);
+            renderChats();
+        });
+
+        const slider = document.getElementById('verify-slider');
+        slider.addEventListener('input', (e) => { if(e.target.value > 95) finalizeAuth(); });
+        lucide.createIcons();
+    </script>
+</body>
+</html>
