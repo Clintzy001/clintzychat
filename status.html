@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clintzy Pulse Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --brand: #F57C00; }
+        .hidden { display: none; }
+        * { -webkit-tap-highlight-color: transparent; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* The Pulse Visualizer */
+        .pulse-wave { display: flex; align-items: flex-end; gap: 2px; height: 24px; opacity: 0.6; }
+        .bar { width: 3px; background: var(--brand); border-radius: 10px; animation: pulse 1s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { height: 4px; } 50% { height: 22px; } }
+
+        /* Glassmorphism Sheets */
+        .bottom-sheet {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); z-index: 100;
+            display: flex; flex-direction: column; justify-content: flex-end; transform: translateY(100%);
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+        .sheet-content { 
+            background: rgba(20, 20, 22, 0.95); width: 100%; border-top: 1px solid rgba(255,255,255,0.1);
+            border-radius: 40px 40px 0 0; padding: 24px; padding-bottom: 50px;
+        }
+
+        /* Floating Reactions */
+        .float-reaction {
+            position: absolute; bottom: 120px; animation: floatUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            pointer-events: none; z-index: 60; font-size: 50px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0) rotate(0deg); opacity: 0; }
+            20% { opacity: 1; transform: translateY(-40px) scale(1.2) rotate(15deg); }
+            100% { transform: translateY(-500px) scale(2) rotate(-15deg); opacity: 0; }
+        }
+
+        /* Toast Notification */
+        #update-toast { transform: translateX(-50%) translateY(-100px); left: 50%; }
+        #update-toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Link Portal Glow */
+        .link-portal {
+            background: rgba(245, 124, 0, 0.15); border: 1px solid rgba(245, 124, 0, 0.4);
+            backdrop-filter: blur(12px); animation: portalGlow 2s infinite alternate;
+        }
+        @keyframes portalGlow { from { box-shadow: 0 0 10px var(--brand); } to { box-shadow: 0 0 25px var(--brand); transform: scale(1.05); } }
+
+        .viewer-list-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: rgba(255,255,255,0.03); border-radius: 24px; margin-bottom: 8px; }
+        .reaction-badge { position: absolute; bottom: -2px; right: -2px; font-size: 14px; background: #1a1a1a; border-radius: 50%; padding: 2px; }
+    </style>
+</head>
+<body class="bg-black text-white h-screen flex flex-col overflow-hidden select-none font-sans">
+
+    <div id="update-toast" class="fixed top-6 z-[200] bg-white text-black px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl transition-all duration-500">
+        <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+        <span class="text-xs font-black uppercase tracking-widest">New Update Available</span>
+    </div>
+
+    <div id="progress-container" class="absolute top-4 inset-x-6 flex space-x-2 z-50">
+        <div class="h-[3px] bg-white/10 flex-1 rounded-full overflow-hidden">
+            <div id="progress" class="h-full bg-gradient-to-r from-[#F57C00] to-orange-400 w-0 transition-all linear"></div>
+        </div>
+    </div>
+
+    <header id="status-header" class="absolute top-10 inset-x-0 px-6 flex items-center justify-between z-50">
+        <div class="flex items-center space-x-4">
+            <button onclick="window.history.back()" class="mr-1 active:scale-75"><i data-lucide="chevron-left" class="w-7 h-7"></i></button>
+            <div class="relative">
+                <div class="absolute -inset-1 bg-gradient-to-tr from-[#F57C00] to-yellow-500 rounded-full blur-[2px] opacity-70"></div>
+                <img src="https://i.pravatar.cc/150?u=jessica" class="relative w-10 h-10 rounded-full border-2 border-black object-cover">
+            </div>
+            <div>
+                <h2 class="font-black text-sm tracking-tight uppercase">Jessica Griffin</h2>
+                <p id="expiry-timer" class="text-[10px] text-[#F57C00] font-bold tracking-widest uppercase">Pulse Active • 2h</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="openSheet('share')" class="bg-white/10 p-2 rounded-full backdrop-blur-md">
+                <i data-lucide="send" class="w-5 h-5"></i>
+            </button>
+            <button onclick="toggleMute(event)" class="bg-white/10 p-2 rounded-full backdrop-blur-md">
+                <i id="mute-icon" data-lucide="volume-2" class="w-5 h-5"></i>
+            </button>
+            <button onclick="toggleStatusMenu(event)" class="bg-white/10 p-2 rounded-full backdrop-blur-md">
+                <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div id="status-menu" class="hidden absolute top-14 right-6 w-56 bg-[#1c1c1e] border border-white/10 rounded-2xl shadow-2xl z-[110] overflow-hidden">
+            <button class="w-full px-5 py-4 text-left text-sm border-b border-white/5 active:bg-white/10 flex items-center justify-between" onclick="handleUpdateCheck()">
+                Check for Updates <i data-lucide="refresh-cw" class="w-4 h-4 opacity-50"></i>
+            </button>
+            <button class="w-full px-5 py-4 text-left text-sm border-b border-white/5 active:bg-white/10" onclick="openSheet('archive')">View Archive</button>
+            <button class="w-full px-5 py-4 text-left text-sm text-red-500 active:bg-white/10" onclick="openSheet('report')">Report Pulse</button>
+        </div>
+    </header>
+
+    <div id="main-viewer" class="flex-1 relative bg-black overflow-hidden">
+        <video id="status-video" class="w-full h-full object-cover" playsinline autoplay muted>
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-light-1230-large.mp4" type="video/mp4">
+        </video>
+        
+        <div id="link-container" class="absolute bottom-36 w-full flex justify-center z-40">
+            <a href="https://example.com" target="_blank" class="link-portal px-8 py-3 rounded-full flex items-center space-x-3">
+                <i data-lucide="external-link" class="w-4 h-4 text-[#F57C00]"></i>
+                <span class="text-xs font-black uppercase tracking-widest">View Project</span>
+            </a>
+        </div>
+
+        <div class="absolute inset-0" id="gesture-area"></div>
+    </div>
+
+    <div id="bottom-bar" class="px-6 py-8 flex flex-col items-center space-y-6 z-50 bg-black">
+        <div class="pulse-wave" id="visualizer">
+            <div class="bar" style="animation-delay: 0.1s"></div>
+            <div class="bar" style="animation-delay: 0.3s"></div>
+            <div class="bar" style="animation-delay: 0.5s"></div>
+            <div class="bar" style="animation-delay: 0.2s"></div>
+            <div class="bar" style="animation-delay: 0.4s"></div>
+            <div class="bar" style="animation-delay: 0.1s"></div>
+        </div>
+
+        <div class="w-full flex items-center justify-between">
+            <button onclick="openSheet('views')" class="flex items-center space-x-2 bg-white/5 px-4 py-3 rounded-2xl border border-white/10 active:scale-90">
+                <div class="flex -space-x-2 mr-1">
+                    <img src="https://i.pravatar.cc/100?u=1" class="w-5 h-5 rounded-full border border-black">
+                    <img src="https://i.pravatar.cc/100?u=2" class="w-5 h-5 rounded-full border border-black">
+                </div>
+                <span class="text-[11px] font-black uppercase">1.2K Views</span>
+            </button>
+            
+            <div class="flex-1 mx-4">
+                <button onclick="openSheet('reply')" class="w-full bg-white/5 border border-white/10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white">
+                    Send message
+                </button>
+            </div>
+
+            <button onclick="sendQuickReaction('❤️')" class="p-3.5 bg-[#F57C00] rounded-2xl shadow-[0_0_20px_rgba(245,124,0,0.3)] active:scale-125 transition-transform">
+                <i data-lucide="heart" class="w-6 h-6 text-black fill-black"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="sheet-share" class="bottom-sheet">
+        <div class="flex-1" onclick="closeSheets()"></div>
+        <div class="sheet-content h-[55vh]">
+            <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-8"></div>
+            <h3 class="text-xl font-black italic mb-6 uppercase tracking-tighter px-2">Forward Pulse</h3>
+            <div class="space-y-4 px-2 overflow-y-auto">
+                <div class="flex items-center justify-between p-4 bg-white/5 rounded-3xl border border-white/5">
+                    <div class="flex items-center gap-4">
+                        <img src="https://i.pravatar.cc/100?u=m" class="w-12 h-12 rounded-2xl">
+                        <span class="font-bold">Marcus Vancity</span>
+                    </div>
+                    <button onclick="closeSheets()" class="bg-[#F57C00] text-black text-[10px] font-black px-6 py-2 rounded-full uppercase">Send</button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-white/5 rounded-3xl border border-white/5">
+                    <div class="flex items-center gap-4">
+                        <img src="https://i.pravatar.cc/100?u=s" class="w-12 h-12 rounded-2xl">
+                        <span class="font-bold">Sarah Jenkins</span>
+                    </div>
+                    <button onclick="closeSheets()" class="bg-[#F57C00] text-black text-[10px] font-black px-6 py-2 rounded-full uppercase">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheet-reply" class="bottom-sheet">
+        <div class="flex-1" onclick="closeSheets()"></div>
+        <div class="sheet-content">
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <button onclick="sendQuickReaction('😂')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">😂</button>
+                <button onclick="sendQuickReaction('🔥')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">🔥</button>
+                <button onclick="sendQuickReaction('😍')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">😍</button>
+                <button onclick="sendQuickReaction('⚡')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">⚡</button>
+                <button onclick="sendQuickReaction('👏')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">👏</button>
+                <button onclick="sendQuickReaction('💯')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">💯</button>
+                <button onclick="sendQuickReaction('😮')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">😮</button>
+                <button onclick="sendQuickReaction('🎉')" class="text-4xl hover:scale-110 p-4 bg-white/5 rounded-3xl">🎉</button>
+            </div>
+            <div class="flex items-center gap-3">
+                <input type="text" placeholder="TYPE A MESSAGE..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold uppercase">
+                <button onclick="closeSheets()" class="text-[#F57C00] font-black px-4">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheet-views" class="bottom-sheet">
+        <div class="flex-1" onclick="closeSheets()"></div>
+        <div class="sheet-content h-[75vh]">
+            <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-8"></div>
+            <div class="flex items-baseline justify-between mb-8 px-2">
+                <h3 class="text-2xl font-black italic tracking-tighter">ACTIVITY</h3>
+                <span class="text-[#F57C00] font-black text-xs">1,248 TOTAL</span>
+            </div>
+            <div class="overflow-y-auto max-h-full pb-20 px-2">
+                <div class="viewer-list-item">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/100?u=a" class="w-12 h-12 rounded-2xl rotate-2">
+                            <div class="reaction-badge">🔥</div>
+                        </div>
+                        <div><p class="font-bold text-sm">alex_pulse</p><p class="text-[10px] opacity-40 uppercase">Reacted 2m ago</p></div>
+                    </div>
+                    <button class="bg-white/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Follow</button>
+                </div>
+                <div class="viewer-list-item">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/100?u=b" class="w-12 h-12 rounded-2xl -rotate-2">
+                            <div class="reaction-badge">⚡</div>
+                        </div>
+                        <div><p class="font-bold text-sm">krypton_01</p><p class="text-[10px] opacity-40 uppercase">Viewed 15m ago</p></div>
+                    </div>
+                    <button class="bg-white/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Follow</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheet-archive" class="bottom-sheet"><div class="flex-1" onclick="closeSheets()"></div><div class="sheet-content"><h3 class="font-black italic">ARCHIVE DATA</h3></div></div>
+    <div id="sheet-report" class="bottom-sheet"><div class="flex-1" onclick="closeSheets()"></div><div class="sheet-content"><h3 class="font-black italic text-red-500">REPORT SUBMITTED</h3></div></div>
+
+    <script>
+        lucide.createIcons();
+        const video = document.getElementById('status-video');
+        const prog = document.getElementById('progress');
+        const header = document.getElementById('status-header');
+        const bottom = document.getElementById('bottom-bar');
+        const visualizer = document.getElementById('visualizer');
+        const menu = document.getElementById('status-menu');
+        const gestureArea = document.getElementById('gesture-area');
+        const expiryTimer = document.getElementById('expiry-timer');
+
+        // 1. 24h Expiry Logic
+        const postTimestamp = Date.now() - (2 * 60 * 60 * 1000); // Created 2h ago
+        function updateExpiry() {
+            const now = Date.now();
+            const diff = now - postTimestamp;
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            
+            if (diff >= twentyFourHours) {
+                expiryTimer.innerText = "Status Expired";
+                setTimeout(() => window.history.back(), 1500);
+            } else {
+                const remaining = twentyFourHours - diff;
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                expiryTimer.innerText = `Expires in ${hours}h`;
+            }
+        }
+
+        // 2. Real-time Update Simulation
+        function handleUpdateCheck() {
+            menu.classList.add('hidden');
+            const toast = document.getElementById('update-toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        function init() {
+            updateExpiry();
+            video.ontimeupdate = () => { 
+                prog.style.width = (video.currentTime / video.duration) * 100 + '%';
+            };
+            video.onended = () => window.history.back();
+        }
+
+        function openSheet(id) {
+            video.pause();
+            menu.classList.add('hidden');
+            document.getElementById(`sheet-${id}`).classList.add('active');
+            visualizer.style.opacity = "0";
+        }
+
+        function closeSheets() {
+            document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('active'));
+            video.play();
+            visualizer.style.opacity = "0.6";
+        }
+
+        function toggleMute(e) {
+            e.stopPropagation();
+            video.muted = !video.muted;
+            document.getElementById('mute-icon').setAttribute('data-lucide', video.muted ? 'volume-x' : 'volume-2');
+            lucide.createIcons();
+        }
+
+        function toggleStatusMenu(e) {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+        }
+
+        function sendQuickReaction(emoji) {
+            const rx = document.createElement('div');
+            rx.className = 'float-reaction';
+            rx.style.left = (Math.random() * 60 + 20) + '%';
+            rx.innerText = emoji;
+            document.body.appendChild(rx);
+            setTimeout(() => rx.remove(), 1200);
+            closeSheets();
+        }
+
+        // Hold to Peek Logic
+        gestureArea.addEventListener('touchstart', (e) => {
+            video.pause();
+            header.style.opacity = "0";
+            bottom.style.opacity = "0";
+            document.getElementById('progress-container').style.opacity = "0";
+            document.getElementById('link-container').style.opacity = "0";
+        });
+
+        gestureArea.addEventListener('touchend', () => {
+            video.play();
+            header.style.opacity = "1";
+            bottom.style.opacity = "1";
+            document.getElementById('progress-container').style.opacity = "1";
+            document.getElementById('link-container').style.opacity = "1";
+        });
+
+        // Close menu on outside click
+        window.onclick = (e) => {
+            if (!menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
