@@ -1,0 +1,22 @@
+<div class="flex flex-col h-screen bg-black text-white">
+    <div class="p-6 flex justify-between items-center border-b border-white/10">
+        <h1 class="text-2xl font-black italic text-[#F57C00]">CHATS</h1>
+        <div class="flex gap-4">
+            <i data-lucide="search" class="w-6 h-6 text-zinc-400"></i>
+            <i data-lucide="plus-circle" class="w-6 h-6 text-[#F57C00]"></i>
+        </div>
+    </div>
+
+    <div class="p-4 overflow-x-auto flex gap-4 no-scrollbar">
+        <div class="flex-shrink-0 flex flex-col items-center gap-1">
+            <div class="w-14 h-14 rounded-full border-2 border-[#F57C00] p-0.5">
+                <img src="user.jpg" class="w-full h-full rounded-full object-cover">
+            </div>
+            <span class="text-[10px] font-bold">You</span>
+        </div>
+        <div id="active-friends-list" class="flex gap-4"></div>
+    </div>
+
+    <div id="active-chats" class="flex-1 overflow-y-auto pb-20">
+        </div>
+</div>
