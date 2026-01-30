@@ -1,0 +1,46 @@
+<div class="max-w-2xl mx-auto" id="profile-container">
+    <div class="relative h-48 bg-gradient-to-b from-[#F57C00]/20 to-black">
+        <div class="absolute -bottom-10 left-6 flex items-end gap-4">
+            <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-[#F57C00] to-yellow-400 cursor-pointer" onclick="viewReels()">
+                <img id="display-avatar" src="https://via.placeholder.com/150" class="w-full h-full rounded-full border-4 border-black object-cover">
+            </div>
+            <div class="mb-2">
+                <h2 id="display-username" class="text-xl font-black italic">Pulse_User_99</h2> 
+                <p id="display-handle" class="text-xs text-zinc-400">@clintzy_official</p> 
+            </div>
+        </div>
+    </div>
+
+    <div class="px-6 mt-16">
+        <p id="display-bio" class="text-sm text-zinc-300 mb-4">Digital Creator | Chasing the Pulse ⚡️</p>
+        <button onclick="toggleEditModal(true)" class="w-full py-2 bg-zinc-900 border border-white/10 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all">Edit Profile</button>
+    </div>
+
+    <div class="grid grid-cols-3 gap-1 mt-8" id="media-grid">
+        <div class="aspect-square bg-zinc-900 animate-pulse"></div>
+        <div class="aspect-square bg-zinc-900 animate-pulse"></div>
+        <div class="aspect-square bg-zinc-900 animate-pulse"></div>
+    </div>
+</div>
+
+<div id="edit-modal" class="hidden fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
+    <div class="bg-[#121212] w-full max-w-md rounded-[2.5rem] p-8 border border-white/10">
+        <h3 class="text-xl font-black italic mb-6 text-[#F57C00]">EDIT PROFILE</h3>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-black text-zinc-500 uppercase">Profile Photo</label>
+                <input type="file" id="upload-photo" accept="image/*" class="block w-full text-xs text-zinc-400 mt-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-[#F57C00] file:text-black">
+            </div>
+            
+            <input type="text" id="input-username" placeholder="Display Name" class="w-full bg-zinc-900 p-4 rounded-2xl border border-white/5 outline-none focus:border-[#F57C00]">
+            
+            <textarea id="input-bio" placeholder="Tell the world about your pulse..." class="w-full bg-zinc-900 p-4 rounded-2xl border border-white/5 outline-none focus:border-[#F57C00] h-24"></textarea>
+            
+            <div class="flex gap-3 pt-4">
+                <button onclick="saveProfile()" class="flex-1 bg-[#F57C00] text-black font-black py-4 rounded-2xl uppercase text-xs tracking-tighter">Save Changes</button>
+                <button onclick="toggleEditModal(false)" class="flex-1 bg-white/5 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-tighter">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
