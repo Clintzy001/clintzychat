@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clintzy Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-black text-white h-screen flex flex-col overflow-hidden">
+
+    <div class="absolute top-4 inset-x-4 flex space-x-1 z-50">
+        <div class="h-1 bg-white/30 flex-1 rounded-full overflow-hidden">
+            <div id="progress" class="h-full bg-orange-500 w-0 transition-all linear"></div>
+        </div>
+    </div>
+
+    <div class="absolute top-8 inset-x-4 flex items-center justify-between z-50">
+        <div class="flex items-center space-x-3">
+            <button onclick="window.history.back()" class="text-white">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <div class="w-10 h-10 rounded-full border-2 border-orange-500 p-0.5">
+                <img src="https://i.pravatar.cc/150?u=jessica" class="rounded-full w-full h-full object-cover">
+            </div>
+            <div>
+                <h2 class="font-bold text-sm">Jessica Griffin</h2>
+                <p class="text-[10px] opacity-70">Just now</p>
+            </div>
+        </div>
+        <i data-lucide="more-vertical" class="w-5 h-5 opacity-70"></i>
+    </div>
+
+    <div class="flex-1 flex items-center justify-center relative">
+        <img id="status-img" src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&w=800&q=80" 
+             class="w-full h-full object-cover">
+        
+        <div class="absolute inset-0 flex">
+            <div class="w-1/3 h-full" onclick="window.history.back()"></div>
+            <div class="w-2/3 h-full" onclick="window.history.back()"></div>
+        </div>
+    </div>
+
+    <div class="p-6 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 inset-x-0 text-center">
+        <i data-lucide="chevron-up" class="mx-auto mb-2 animate-bounce"></i>
+        <p class="text-sm font-medium">Reply</p>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // Auto-close after 5 seconds
+        const progressBar = document.getElementById('progress');
+        progressBar.style.transitionDuration = '5000ms';
+        setTimeout(() => progressBar.style.width = '100%', 100);
+        
+        setTimeout(() => {
+            window.history.back();
+        }, 5100);
+    </script>
+</body>
+</html>
