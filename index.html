@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ClintzyApp | Pulse Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --brand: #F57C00; }
+        .hidden { display: none; }
+        * { -webkit-tap-highlight-color: transparent; scrollbar-width: none; }
+        ::-webkit-scrollbar { display: none; }
+
+        /* Splash Animation */
+        #splash-screen {
+            position: fixed; inset: 0; background: black; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+
+        /* The Pulse Aura */
+        .pulse-aura {
+            position: relative;
+        }
+        .pulse-aura::after {
+            content: ''; position: absolute; inset: -3px;
+            border-radius: 22px; padding: 2px;
+            background: linear-gradient(45deg, var(--brand), #ffcc00);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate { 100% { filter: hue-rotate(360deg); } }
+
+        /* Navigation Active State */
+        .nav-active { color: var(--brand) !important; position: relative; }
+        .nav-active::after {
+            content: ''; position: absolute; bottom: -8px; width: 4px; height: 4px;
+            background: var(--brand); border-radius: 50%;
+        }
+
+        /* Menu Animation */
+        #more-menu { transform-origin: top right; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body class="bg-black text-white overflow-hidden font-sans">
+
+    <div id="splash-screen">
+        <h1 class="text-5xl font-black italic tracking-tighter text-[#F57C00] animate-pulse">Clintzy</h1>
+        <div class="absolute bottom-12 flex flex-col items-center">
+            <div class="flex gap-1 mb-4">
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-1.5 h-1.5 bg-[#F57C00] rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-[0.4em]">Pulse Pro Engine</p>
+        </div>
+    </div>
+
+    <div id="app-content" class="h-screen flex flex-col opacity-0 transition-opacity duration-700">
+        
+        <header class="px-6 py-5 flex justify-between items-center bg-black/80 backdrop-blur-md sticky top-0 z-50">
+            <div>
+                <h1 class="text-2xl font-black italic tracking-tighter text-[#F57C00]">Clintzy</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button class="relative"><i data-lucide="bell" class="w-6 h-6 text-zinc-400"></i><span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-black"></span></button>
+                <button onclick="toggleMenu()"><i data-lucide="menu" class="w-6 h-6 text-zinc-400"></i></button>
+            </div>
+
+            <div id="more-menu" class="hidden absolute top-16 right-6 w-56 bg-[#121212] border border-white/5 rounded-3xl shadow-2xl z-[100] overflow-hidden p-2">
+                <button class="w-full p-4 text-left text-sm font-bold hover:bg-white/5 rounded-2xl">Pulse Settings</button>
+                <button class="w-full p-4 text-left text-sm font-bold hover:bg-white/5 rounded-2xl">Archived Waves</button>
+                <div class="h-[1px] bg-white/5 my-2"></div>
+                <button class="w-full p-4 text-left text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-2xl">Sign Out</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto">
+            <div class="px-6 mb-8">
+                <div class="bg-zinc-900/50 border border-white/5 rounded-[2rem] px-5 py-4 flex items-center gap-4 group focus-within:border-[#F57C00]/50 transition-all">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-[#F57C00]"></i>
+                    <input type="text" placeholder="Ask Clintzy AI..." class="bg-transparent outline-none w-full text-sm font-medium placeholder-zinc-600">
+                </div>
+            </div>
+
+            <div class="mb-10">
+                <div class="px-6 flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500">Live Pulse</h3>
+                    <span class="text-[10px] font-black text-[#F57C00] bg-[#F57C00]/10 px-2 py-1 rounded-md">12 ACTIVE</span>
+                </div>
+                
+                <div class="flex gap-5 overflow-x-auto px-6 pb-2">
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-20 h-20 rounded-[2rem] bg-zinc-900 border-2 border-dashed border-zinc-700 flex items-center justify-center cursor-pointer">
+                            <i data-lucide="plus" class="w-6 h-6 text-zinc-500"></i>
+                        </div>
+                        <span class="text-[10px] font-bold opacity-40">YOU</span>
+                    </div>
+
+                    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                        <div class="w-20 h-20 rounded-[2rem] overflow-hidden pulse-aura">
+                            <img src="https://i.pravatar.cc/150?u=jessica" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-[10px] font-black group-hover:text-[#F57C00]">JESSICA</span>
+                    </div>
+
+                    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                        <div class="w-20 h-20 rounded-[2rem] overflow-hidden pulse-aura">
+                            <img src="https://i.pravatar.cc/150?u=marcus" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-[10px] font-black group-hover:text-[#F57C00]">MARCUS</span>
+                    </div>
+
+                    <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                        <div class="w-20 h-20 rounded-[2rem] overflow-hidden pulse-aura">
+                            <img src="https://i.pravatar.cc/150?u=sarah" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-[10px] font-black group-hover:text-[#F57C00]">SARAH</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 pb-32">
+                <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500 mb-6">Recent Waves</h3>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center gap-5 bg-zinc-900/30 p-5 rounded-[2.5rem] border border-white/[0.03] active:scale-95 transition-transform">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/150?u=jessica" class="w-14 h-14 rounded-2xl object-cover">
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-4 border-black rounded-full"></div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm">Jessica Griffin</h4>
+                                <span class="text-[10px] font-black opacity-30">12:40 PM</span>
+                            </div>
+                            <p class="text-xs text-zinc-500 font-medium truncate">Sent a reaction to your pulse 🔥</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-5 bg-zinc-900/30 p-5 rounded-[2.5rem] border border-white/[0.03] active:scale-95 transition-transform">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/150?u=marcus" class="w-14 h-14 rounded-2xl object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold text-sm">Marcus V.</h4>
+                                <span class="text-[10px] font-black opacity-30">YESTERDAY</span>
+                            </div>
+                            <p class="text-xs text-zinc-500 font-medium truncate">Can you send the project link?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="fixed bottom-0 inset-x-0 bg-black/80 backdrop-blur-xl border-t border-white/5 px-8 pt-4 pb-10 flex justify-between items-center z-50">
+            <button class="nav-item nav-active flex flex-col items-center gap-1">
+                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase tracking-tighter">Wave</span>
+            </button>
+            <button class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="message-circle" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase tracking-tighter">Chats</span>
+            </button>
+            
+            <div class="absolute left-1/2 -translate-x-1/2 -top-6">
+                <button class="w-16 h-16 bg-[#F57C00] rounded-[2rem] shadow-[0_10px_30px_rgba(245,124,0,0.4)] flex items-center justify-center active:scale-90 transition-transform">
+                    <i data-lucide="zap" class="w-8 h-8 text-black fill-black"></i>
+                </button>
+            </div>
+
+            <button class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="users" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase tracking-tighter">Groups</span>
+            </button>
+            <button class="nav-item flex flex-col items-center gap-1 text-zinc-500">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-[9px] font-black uppercase tracking-tighter">Me</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // 1. Splash Logic
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('splash-screen').style.visibility = 'hidden';
+                    document.getElementById('app-content').style.opacity = '1';
+                }, 500);
+            }, 2500);
+        });
+
+        // 2. Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('more-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // 3. Navigation State Logic
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('nav-active'));
+                this.classList.add('nav-active');
+            });
+        });
+
+        // Close menu on click outside
+        window.onclick = function(event) {
+            if (!event.target.closest('#more-menu') && !event.target.closest('button')) {
+                document.getElementById('more-menu').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
